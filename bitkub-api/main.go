@@ -78,7 +78,9 @@ func clientHTTP(method string, path string) error {
 	if errorMessage(data.Error) != "" {
 		return fmt.Errorf("%d - %s", data.Error, errorMessage(data.Error))
 	}
-	fmt.Println(data.Result)
+	fmt.Println("THB")
+	fmt.Println("available:", data.Result["THB"].(map[string]interface{})["available"])
+	fmt.Println("reserved:", data.Result["THB"].(map[string]interface{})["reserved"])
 	return nil
 }
 

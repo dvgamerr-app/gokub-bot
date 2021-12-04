@@ -1,7 +1,10 @@
 # gokub-bot
-bitkub.com trading bot.
+Bitkub Trading bot.
 
 ![Foo](./docs/gokub.png)
+
+## Ref
+- [Official Documentation for Bitkub APIs](https://github.com/bitkub/bitkub-official-api-docs)
 
 ## Donate Support
 
