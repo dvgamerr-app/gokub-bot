@@ -3,6 +3,9 @@ Bitkub Trading bot.
 
 ![Foo](./docs/gokub.png)
 
+## TODO
+- [] เริ่มด้วย Rebalancing Bot ก่อนละกันดูจะ ง่ายสุด
+
 ## Ref
 - [Official Documentation for Bitkub APIs](https://github.com/bitkub/bitkub-official-api-docs)
 
