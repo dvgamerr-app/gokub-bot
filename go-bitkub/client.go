@@ -7,21 +7,24 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 )
 
 func getHashSignature(secretKey string) (int64, string) {
 	ts := time.Now().UnixMilli()
-	mac := hmac.New(sha256.New, []byte(os.Getenv(secretKey)))
+	mac := hmac.New(sha256.New, []byte(secretKey))
 	mac.Write([]byte(fmt.Sprintf(`{"ts":%d}`, ts)))
 	return ts, hex.EncodeToString(mac.Sum(nil))
 }
 
-func newClientHTTP(cfg *Config, method string, path string) ([]byte, error) {
-	ts, sig := getHashSignature(cfg.SecretKey)
-	payload := strings.NewReader(fmt.Sprintf(`{"ts":%d,"sig":"%s"}`, ts, sig))
+func newClientHTTP(cfg *Config, method string, path string, secure bool) ([]byte, error) {
+	var payload *strings.Reader
+
+	if secure {
+		ts, sig := getHashSignature(cfg.SecretKey)
+		payload = strings.NewReader(fmt.Sprintf(`{"ts":%d,"sig":"%s"}`, ts, sig))
+	}
 
 	client := &http.Client{}
 
@@ -33,7 +36,7 @@ func newClientHTTP(cfg *Config, method string, path string) ([]byte, error) {
 
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("X-BTK-APIKEY", os.Getenv(cfg.ApiKey))
+	req.Header.Add("X-BTK-APIKEY", cfg.ApiKey)
 
 	res, err := client.Do(req)
 	if err != nil {

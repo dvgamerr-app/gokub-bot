@@ -11,7 +11,7 @@ type Balance struct {
 }
 
 func (cfg *Config) MarketBalances() (map[string]*Balance, error) {
-	body, err := newClientHTTP(cfg, "POST", _API_MARKET_BALANCES)
+	body, err := newClientHTTP(cfg, "POST", _API_MARKET_BALANCES, true)
 
 	if err != nil {
 		return nil, err
