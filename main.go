@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/tmilewski/goenv"
 )
@@ -49,10 +50,28 @@ func init() {
 }
 func main() {
 	appLog.Printf("Starting... (%s)", appTitle)
-	bk := &bitkub.Config{ApiKey: _APIKEY, SecretKey: _SECRETKEY}
+	bk := &bitkub.Config{ApiKey: os.Getenv(_APIKEY), SecretKey: os.Getenv(_SECRETKEY)}
 
 	appLog.Println("Check status server...")
 	if err := bk.GetStatus(); err != nil {
 		panic(fmt.Sprintf(" - API::%s", err.Error()))
+	}
+
+	serverTime, err := bk.GetServerTime()
+	if err != nil {
+		panic(fmt.Sprintf(" - API::%s", err.Error()))
+	}
+	appLog.Println("- Server Time:", serverTime.Format(time.RFC1123Z))
+
+	market, err := bk.MarketBalances()
+	if err != nil {
+		panic(err)
+	}
+
+	for currency, v := range market {
+		if v.Available == 0 && v.Reserved == 0 {
+			continue
+		}
+		appLog.Printf("%s  = %f (%f)", currency, v.Available, v.Reserved)
 	}
 }

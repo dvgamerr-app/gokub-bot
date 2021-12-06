@@ -3,6 +3,7 @@ package bitkub
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"time"
 )
 
@@ -22,11 +23,6 @@ func (cfg *Config) Init() {
 	if cfg.SecretKey == "" {
 		panic("'SecretKey' is empty.")
 	}
-}
-
-type StatusAPI struct {
-	Secure    bool `json:"secure"`
-	NonSecure bool `json:"non-secure"`
 }
 
 func (cfg *Config) GetStatus() error {
@@ -61,26 +57,10 @@ func (cfg *Config) GetServerTime() (time.Time, error) {
 		return time.Time{}, err
 	}
 
-	var data APIResponse
-	if err := json.Unmarshal(body, &data); err != nil {
-		return time.Time{}, err
+	i, err := strconv.ParseInt(string(body), 10, 64)
+	if err != nil {
+		panic(err)
 	}
 
-	if data.IsError() {
-		return time.Time{}, data.GetError(_API_SERVERTIME)
-	}
-
-	result := map[string]*Balance{}
-
-	for currency, val := range data.Result {
-		fields, ok := val.(map[string]interface{})
-		if !ok {
-			return time.Time{}, fmt.Errorf("MarketBalances:: %+v", fields)
-		}
-
-		result[currency] = new(Balance)
-		result[currency].Available = fields["available"].(float64)
-		result[currency].Reserved = fields["reserved"].(float64)
-	}
-	return time.Now(), nil
+	return time.Unix(i, 0), nil
 }
