@@ -1,5 +1,7 @@
 package bitkub
 
+import "fmt"
+
 type APIResponse struct {
 	Error  int                    `json:"error"`
 	Result map[string]interface{} `json:"result"`
@@ -9,8 +11,8 @@ func (e *APIResponse) IsError() bool {
 	return e.Error != 0
 }
 
-func (e *APIResponse) GetErrorMessage() string {
-	return errorMessage(e.Error)
+func (e *APIResponse) GetError() error {
+	return fmt.Errorf("%d - %s", e.Error, errorMessage(e.Error))
 }
 
 func errorMessage(code int) string {
