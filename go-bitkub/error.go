@@ -1,5 +1,18 @@
 package bitkub
 
+type APIResponse struct {
+	Error  int                    `json:"error"`
+	Result map[string]interface{} `json:"result"`
+}
+
+func (e *APIResponse) IsError() bool {
+	return e.Error != 0
+}
+
+func (e *APIResponse) GetErrorMessage() string {
+	return errorMessage(e.Error)
+}
+
 func errorMessage(code int) string {
 	switch code {
 	case 1:

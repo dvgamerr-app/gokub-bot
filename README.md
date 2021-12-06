@@ -6,6 +6,9 @@ Bitkub Trading bot.
 ## TODO
 - [] เริ่มด้วย Rebalancing Bot ก่อนละกันดูจะ ง่ายสุด
 
+## Feature Next
+- [] Grid Trading
+
 ## Ref
 - [Official Documentation for Bitkub APIs](https://github.com/bitkub/bitkub-official-api-docs)
 

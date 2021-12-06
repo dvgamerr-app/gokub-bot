@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"gokub/bitkub-api"
+	"gokub/go-bitkub"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -11,8 +11,10 @@ import (
 )
 
 const (
-	_ENV     = "ENV"
-	_VERSION = "VERSION"
+	_ENV       = "ENV"
+	_VERSION   = "VERSION"
+	_APIKEY    = "BITKUB_API"
+	_SECRETKEY = "BITKUB_SECRET"
 )
 
 var (
@@ -26,6 +28,14 @@ func init() {
 	if !appIsProduction {
 		goenv.Load()
 	}
+
+	if os.Getenv(_APIKEY) == "" {
+		panic(fmt.Sprintf("Environment name '%s' is empty.", _APIKEY))
+	}
+	if os.Getenv(_SECRETKEY) == "" {
+		panic(fmt.Sprintf("Environment name '%s' is empty.", _SECRETKEY))
+	}
+
 	content, err := ioutil.ReadFile(_VERSION)
 	if err != nil {
 		content, _ = ioutil.ReadFile(fmt.Sprintf("../%s", _VERSION))
@@ -35,7 +45,12 @@ func init() {
 }
 func main() {
 	fmt.Printf("%s starting...\n", appTitle)
-	err := bitkub.MarketBalances()
+	bk := &bitkub.Config{ApiKey: _APIKEY, SecretKey: _SECRETKEY}
+	itemBalance, err := bk.MarketBalances()
+
+	for currency, balance := range itemBalance {
+		fmt.Printf("%s = %+v\n", currency, balance)
+	}
 	if err != nil {
 		panic(err)
 	}
