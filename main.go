@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"gokub/go-bitkub"
 	"io/ioutil"
+	"log"
 	"os"
 	"strings"
 
@@ -21,6 +22,7 @@ var (
 	appName    string = "gokub-bot"
 	appVersion string = ""
 	appTitle   string = ""
+	appLog     *log.Logger
 )
 
 func init() {
@@ -42,16 +44,15 @@ func init() {
 	}
 	appVersion = strings.TrimSpace(string(content))
 	appTitle = fmt.Sprintf("%s@%s", appName, appVersion)
+
+	appLog = log.New(os.Stdout, "", log.Lshortfile|log.Ltime)
 }
 func main() {
-	fmt.Printf("%s starting...\n", appTitle)
+	appLog.Printf("Starting... (%s)", appTitle)
 	bk := &bitkub.Config{ApiKey: _APIKEY, SecretKey: _SECRETKEY}
-	itemBalance, err := bk.MarketBalances()
 
-	for currency, balance := range itemBalance {
-		fmt.Printf("%s = %+v\n", currency, balance)
-	}
-	if err != nil {
-		panic(err)
+	appLog.Println("Check status server...")
+	if err := bk.GetStatus(); err != nil {
+		panic(fmt.Sprintf(" - API::%s", err.Error()))
 	}
 }

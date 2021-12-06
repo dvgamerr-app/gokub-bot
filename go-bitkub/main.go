@@ -24,39 +24,38 @@ func (cfg *Config) Init() {
 	}
 }
 
-func (cfg *Config) GetStatus() (map[string]*Balance, error) {
-	body, err := newClientHTTP(cfg, "POST", _API_MARKET_BALANCES, false)
+type StatusAPI struct {
+	Secure    bool `json:"secure"`
+	NonSecure bool `json:"non-secure"`
+}
 
+func (cfg *Config) GetStatus() error {
+	body, err := newClientHTTP(cfg, "GET", _API_STATUS, false)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	var data APIResponse
-	if err := json.Unmarshal(body, &data); err != nil {
-		return nil, err
+	if err := json.Unmarshal(body, &data); err == nil {
+		return data.GetError(_API_STATUS)
 	}
 
-	if data.IsError() {
-		return nil, data.GetError()
+	var result []map[string]string
+	if err := json.Unmarshal(body, &result); err != nil {
+		return err
 	}
 
-	result := map[string]*Balance{}
-
-	for currency, val := range data.Result {
-		fields, ok := val.(map[string]interface{})
-		if !ok {
-			return nil, fmt.Errorf("MarketBalances:: %+v", fields)
+	for _, status := range result {
+		if status["status"] != "ok" {
+			return fmt.Errorf("%s - %s", status["name"], status["message"])
 		}
-
-		result[currency] = new(Balance)
-		result[currency].Available = fields["available"].(float64)
-		result[currency].Reserved = fields["reserved"].(float64)
 	}
-	return result, nil
+
+	return nil
 }
 
 func (cfg *Config) GetServerTime() (time.Time, error) {
-	body, err := newClientHTTP(cfg, "POST", _API_MARKET_BALANCES, false)
+	body, err := newClientHTTP(cfg, "GET", _API_SERVERTIME, false)
 
 	if err != nil {
 		return time.Time{}, err
@@ -68,7 +67,7 @@ func (cfg *Config) GetServerTime() (time.Time, error) {
 	}
 
 	if data.IsError() {
-		return time.Time{}, data.GetError()
+		return time.Time{}, data.GetError(_API_SERVERTIME)
 	}
 
 	result := map[string]*Balance{}

@@ -11,8 +11,8 @@ func (e *APIResponse) IsError() bool {
 	return e.Error != 0
 }
 
-func (e *APIResponse) GetError() error {
-	return fmt.Errorf("%d - %s", e.Error, errorMessage(e.Error))
+func (e *APIResponse) GetError(url string) error {
+	return fmt.Errorf("'%s' %d - %s", url, e.Error, errorMessage(e.Error))
 }
 
 func errorMessage(code int) string {

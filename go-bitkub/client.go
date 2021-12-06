@@ -19,7 +19,7 @@ func getHashSignature(secretKey string) (int64, string) {
 }
 
 func newClientHTTP(cfg *Config, method string, path string, secure bool) ([]byte, error) {
-	var payload *strings.Reader
+	var payload *strings.Reader = strings.NewReader("{}")
 
 	if secure {
 		ts, sig := getHashSignature(cfg.SecretKey)

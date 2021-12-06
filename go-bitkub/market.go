@@ -23,7 +23,7 @@ func (cfg *Config) MarketBalances() (map[string]*Balance, error) {
 	}
 
 	if data.IsError() {
-		return nil, data.GetError()
+		return nil, data.GetError(_API_MARKET_BALANCES)
 	}
 
 	result := map[string]*Balance{}
