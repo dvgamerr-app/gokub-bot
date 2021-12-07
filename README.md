@@ -6,6 +6,9 @@ Bitkub Trading bot Open Source.
 
 ![Foo](./docs/gokub.png)
 
+## Community
+- [Discord](https://discord.gg/4GSnfVCqYb)
+
 ## TODO
 - [x] เริ่มด้วย Rebalancing Bot ก่อนละกันดูจะ ง่ายสุด (In Progress)
 - [ ] Grid Trading 
