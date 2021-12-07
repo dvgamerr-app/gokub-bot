@@ -1,13 +1,14 @@
 # gokub-bot
 
 [![CodeQL](https://github.com/touno-io/gokub-bot/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/touno-io/gokub-bot/actions/workflows/codeql-analysis.yml)
-Bitkub Trading bot.
+
+Bitkub Trading bot Open Source.
 
 ![Foo](./docs/gokub.png)
 
 ## TODO
-- [x] เริ่มด้วย Rebalancing Bot ก่อนละกันดูจะ ง่ายสุด (InProgress)
-- [ ] Grid Trading
+- [x] เริ่มด้วย Rebalancing Bot ก่อนละกันดูจะ ง่ายสุด (In Progress)
+- [ ] Grid Trading 
 
 ## Feature Next
 - Support Dockerfile
