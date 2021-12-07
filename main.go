@@ -79,8 +79,26 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
+	inSymbol := []string{"THB_BCH", "THB_KUB", "THB_OMG", "THB_BTC"}
 	for _, v := range symbols {
-		appLog.Printf("%d = %s (%s)", v.ID, v.Symbol, v.Info)
+		if len(inSymbol) > 0 {
+			var include bool
+			for _, in := range inSymbol {
+				if v.Symbol == in {
+					include = true
+					break
+				}
+			}
+			if !include {
+				continue
+			}
+		}
+
+		ticker, err := bk.MarketTicker(v.Symbol)
+		if err != nil {
+			panic(err)
+		}
+
+		appLog.Printf("%s|%d \tBid: %f Ask: %f", v.Symbol, v.ID, ticker[v.Symbol].HighestBid, ticker[v.Symbol].LowestAsk)
 	}
 }
