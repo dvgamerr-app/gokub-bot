@@ -26,14 +26,14 @@ func (cfg *Config) Init() {
 }
 
 func (cfg *Config) GetStatus() error {
-	body, err := newClientHTTP(cfg, "GET", _API_STATUS, false)
+	body, err := createClientHTTP(cfg, "GET", _API_STATUS, false)
 	if err != nil {
-		return err
+		return fmt.Errorf("'%s' %+v", _API_STATUS, err)
 	}
 
-	var data APIResponse
-	if err := json.Unmarshal(body, &data); err == nil {
-		return data.GetError(_API_STATUS)
+	var data ResponseKeyValues
+	if err := data.Unmarshal(body); err == nil {
+		return fmt.Errorf("'%s' %+v", _API_STATUS, data.GetError())
 	}
 
 	var result []map[string]string
@@ -51,15 +51,15 @@ func (cfg *Config) GetStatus() error {
 }
 
 func (cfg *Config) GetServerTime() (time.Time, error) {
-	body, err := newClientHTTP(cfg, "GET", _API_SERVERTIME, false)
+	body, err := createClientHTTP(cfg, "GET", _API_SERVERTIME, false)
 
 	if err != nil {
-		return time.Time{}, err
+		return time.Time{}, fmt.Errorf("'%s' %+v", _API_SERVERTIME, err)
 	}
 
-	i, err := strconv.ParseInt(string(body), 10, 64)
+	i, err := strconv.ParseInt(string(body), 0, 64)
 	if err != nil {
-		panic(err)
+		return time.Time{}, fmt.Errorf("'%s' %+v", _API_SERVERTIME, err)
 	}
 
 	return time.Unix(i, 0), nil

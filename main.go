@@ -74,4 +74,13 @@ func main() {
 		}
 		appLog.Printf("%s  = %f (%f)", currency, v.Available, v.Reserved)
 	}
+
+	symbols, err := bk.MarketSymbols()
+	if err != nil {
+		panic(err)
+	}
+
+	for _, v := range symbols {
+		appLog.Printf("%d = %s (%s)", v.ID, v.Symbol, v.Info)
+	}
 }

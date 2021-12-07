@@ -1,18 +1,58 @@
 package bitkub
 
-import "fmt"
+import (
+	"encoding/json"
+	"fmt"
+)
 
-type APIResponse struct {
+type ResponseKeyValues struct {
 	Error  int                    `json:"error"`
 	Result map[string]interface{} `json:"result"`
 }
 
-func (e *APIResponse) IsError() bool {
+func (e *ResponseKeyValues) IsError() bool {
 	return e.Error != 0
 }
 
-func (e *APIResponse) GetError(url string) error {
-	return fmt.Errorf("'%s' %d - %s", url, e.Error, errorMessage(e.Error))
+func (e *ResponseKeyValues) GetError() error {
+	return fmt.Errorf("%d - %s", e.Error, errorMessage(e.Error))
+}
+
+func (e *ResponseKeyValues) Unmarshal(body []byte) error {
+	if err := json.Unmarshal(body, e); err != nil {
+		return err
+	}
+
+	if e.IsError() {
+		return e.GetError()
+	}
+
+	return nil
+}
+
+type ResponseArray struct {
+	Error  int           `json:"error"`
+	Result []interface{} `json:"result"`
+}
+
+func (e *ResponseArray) IsError() bool {
+	return e.Error != 0
+}
+
+func (e *ResponseArray) GetError() error {
+	return fmt.Errorf("%d - %s", e.Error, errorMessage(e.Error))
+}
+
+func (e *ResponseArray) Unmarshal(body []byte) error {
+	if err := json.Unmarshal(body, e); err != nil {
+		return err
+	}
+
+	if e.IsError() {
+		return e.GetError()
+	}
+
+	return nil
 }
 
 func errorMessage(code int) string {

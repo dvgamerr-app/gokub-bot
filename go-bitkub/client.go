@@ -18,7 +18,7 @@ func getHashSignature(secretKey string) (int64, string) {
 	return ts, hex.EncodeToString(mac.Sum(nil))
 }
 
-func newClientHTTP(cfg *Config, method string, path string, secure bool) ([]byte, error) {
+func createClientHTTP(cfg *Config, method string, path string, secure bool) ([]byte, error) {
 	var payload *strings.Reader = strings.NewReader("{}")
 
 	if secure {
