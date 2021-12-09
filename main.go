@@ -48,6 +48,18 @@ func init() {
 
 	appLog = log.New(os.Stdout, "", log.Lshortfile|log.Ltime)
 }
+
+type Crypto []string
+
+func (e Crypto) Find(symbol string) bool {
+	for i := 0; i < len(e); i++ {
+		if e[i] == symbol {
+			return true
+		}
+	}
+	return false
+}
+
 func main() {
 	appLog.Printf("Starting... (%s)", appTitle)
 	bk := &bitkub.Config{ApiKey: os.Getenv(_APIKEY), SecretKey: os.Getenv(_SECRETKEY)}
@@ -63,42 +75,37 @@ func main() {
 	}
 	appLog.Println("- Server Time:", serverTime.Format(time.RFC1123Z))
 
+	wishlist := Crypto{"ADA", "BNB", "CRV", "DOT", "ETH", "EVX", "KUB", "POW", "WAN", "XLM", "XRP"}
+
 	market, err := bk.MarketBalances()
 	if err != nil {
 		panic(err)
-	}
-
-	for currency, v := range market {
-		if v.Available == 0 && v.Reserved == 0 {
-			continue
-		}
-		appLog.Printf("%s  = %f (%f)", currency, v.Available, v.Reserved)
 	}
 
 	symbols, err := bk.MarketSymbols()
 	if err != nil {
 		panic(err)
 	}
-	inSymbol := []string{"THB_BCH", "THB_KUB", "THB_OMG", "THB_BTC"}
+
+	var balanceTotal float64 = market["THB"].Available
+	appLog.Printf(" %s - %.4f Baht", " THB", market["THB"].Available)
 	for _, v := range symbols {
-		if len(inSymbol) > 0 {
-			var include bool
-			for _, in := range inSymbol {
-				if v.Symbol == in {
-					include = true
-					break
-				}
-			}
-			if !include {
-				continue
-			}
+		coins := strings.Split(v.Symbol, "_")
+
+		if !wishlist.Find(coins[1]) {
+			continue
 		}
+		bl := market[coins[1]]
 
 		ticker, err := bk.MarketTicker(v.Symbol)
 		if err != nil {
 			panic(err)
 		}
 
-		appLog.Printf("%s|%d \tBid: %f Ask: %f", v.Symbol, v.ID, ticker[v.Symbol].HighestBid, ticker[v.Symbol].LowestAsk)
+		crypto := ticker[v.Symbol]
+		balanceTotal += bl.Available * crypto.LowestAsk
+
+		appLog.Printf(" %s - %.4f Baht", coins[1], bl.Available*crypto.LowestAsk)
 	}
+	appLog.Printf("Total Balacne: %.4f", balanceTotal)
 }
