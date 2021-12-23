@@ -1,7 +1,6 @@
 package bitkub
 
 import (
-	"encoding/json"
 	"fmt"
 )
 

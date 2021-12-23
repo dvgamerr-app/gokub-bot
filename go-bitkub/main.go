@@ -1,11 +1,14 @@
 package bitkub
 
 import (
-	"encoding/json"
 	"fmt"
 	"strconv"
 	"time"
+
+	jsoniter "github.com/json-iterator/go"
 )
+
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 var (
 	UrlAPI = "https://api.bitkub.com"
@@ -26,7 +29,7 @@ func (cfg *Config) Init() {
 }
 
 func (cfg *Config) GetStatus() error {
-	body, err := createClientHTTP(cfg, "GET", _API_STATUS, false)
+	body, err := createClientHTTP(cfg, "GET", _API_STATUS, nil)
 	if err != nil {
 		return fmt.Errorf("'%s' %+v", _API_STATUS, err)
 	}
@@ -51,7 +54,7 @@ func (cfg *Config) GetStatus() error {
 }
 
 func (cfg *Config) GetServerTime() (time.Time, error) {
-	body, err := createClientHTTP(cfg, "GET", _API_SERVERTIME, false)
+	body, err := createClientHTTP(cfg, "GET", _API_SERVERTIME, nil)
 
 	if err != nil {
 		return time.Time{}, fmt.Errorf("'%s' %+v", _API_SERVERTIME, err)

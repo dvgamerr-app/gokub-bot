@@ -1,7 +1,6 @@
 package bitkub
 
 import (
-	"encoding/json"
 	"fmt"
 )
 
@@ -11,8 +10,8 @@ type Symbols struct {
 	Info   string `json:"info"`
 }
 
-func (cfg *Config) MarketSymbols() ([]*Symbols, error) {
-	body, err := createClientHTTP(cfg, "GET", _API_MARKET_SYMBOLS, true)
+func (cfg *Config) Symbols() ([]*Symbols, error) {
+	body, err := createClientHTTP(cfg, "GET", _API_MARKET_SYMBOLS, nil)
 
 	if err != nil {
 		return nil, fmt.Errorf("'%s' %+v", _API_MARKET_SYMBOLS, err)
@@ -29,12 +28,12 @@ func (cfg *Config) MarketSymbols() ([]*Symbols, error) {
 	for _, val := range res.Result {
 		fields, ok := val.(map[string]interface{})
 		if !ok {
-			return nil, fmt.Errorf("MarketSymbols:: %+v", val)
+			return nil, fmt.Errorf("Symbols:: %+v", val)
 		}
 
 		id, ok := fields["id"].(float64)
 		if !ok {
-			return nil, fmt.Errorf("MarketSymbols:: %+v", val)
+			return nil, fmt.Errorf("Symbols:: %+v", val)
 		}
 
 		result = append(result, &Symbols{
@@ -63,12 +62,12 @@ type Ticker struct {
 	PrevOpen      float64 `json:"prevOpen"`
 }
 
-func (cfg *Config) MarketTicker(symbol ...string) (map[string]*Ticker, error) {
+func (cfg *Config) Ticker(symbol ...string) (map[string]*Ticker, error) {
 	url := _API_MARKET_TICKER
 	if len(symbol) > 0 {
 		url = fmt.Sprintf("%s?sym=%s", _API_MARKET_TICKER, symbol[0])
 	}
-	body, err := createClientHTTP(cfg, "GET", url, true)
+	body, err := createClientHTTP(cfg, "GET", url, nil)
 
 	if err != nil {
 		return nil, fmt.Errorf("'%s' %+v", url, err)
@@ -85,12 +84,12 @@ func (cfg *Config) MarketTicker(symbol ...string) (map[string]*Ticker, error) {
 	for sb, val := range res {
 		id, ok := val["id"].(float64)
 		if !ok {
-			return nil, fmt.Errorf("MarketTicker:: %+v", val)
+			return nil, fmt.Errorf("Ticker:: %+v", val)
 		}
 
 		frozen, ok := val["isFrozen"].(float64)
 		if !ok {
-			return nil, fmt.Errorf("MarketTicker:: %+v", val)
+			return nil, fmt.Errorf("Ticker:: %+v", val)
 		}
 
 		result[sb] = &Ticker{
@@ -118,8 +117,8 @@ type Balance struct {
 	Reserved  float64 `json:"reserved"`
 }
 
-func (cfg *Config) MarketBalances() (map[string]*Balance, error) {
-	body, err := createClientHTTP(cfg, "POST", _API_MARKET_BALANCES, true)
+func (cfg *Config) Balances() (map[string]*Balance, error) {
+	body, err := createClientHTTP(cfg, "POST", _API_MARKET_BALANCES, nil)
 	if err != nil {
 		return nil, fmt.Errorf("'%s' %+v", _API_MARKET_BALANCES, err)
 	}
@@ -134,13 +133,54 @@ func (cfg *Config) MarketBalances() (map[string]*Balance, error) {
 	for currency, val := range res.Result {
 		fields, ok := val.(map[string]interface{})
 		if !ok {
-			return nil, fmt.Errorf("MarketBalances:: %+v", val)
+			return nil, fmt.Errorf("Balances:: %+v", val)
 		}
 
 		result[currency] = &Balance{
 			Available: fields["available"].(float64),
 			Reserved:  fields["reserved"].(float64),
 		}
+	}
+	return result, nil
+}
+
+type OrderHistory struct {
+	TxnID         string  `json:"txn_id"`
+	OrderID       float64 `json:"order_id"`
+	Hash          string  `json:"hash"`
+	ParentOrderID float64 `json:"parent_order_id"`
+	SuperOrderID  float64 `json:"super_order_id"`
+	TakenByMe     bool    `json:"taken_by_me"`
+	IsMaker       bool    `json:"is_maker"`
+	Side          string  `json:"side"`
+	Type          string  `json:"type"`
+	Rate          float64 `json:"rate"`
+	Fee           float64 `json:"fee"`
+	Credit        float64 `json:"credit"`
+	Amount        float64 `json:"amount"`
+	TimeStamp     float64 `json:"ts"`
+}
+
+func (cfg *Config) MyOrderHistory(symbol string) ([]*OrderHistory, error) {
+	body, err := createClientHTTP(cfg, "POST", _API_MARKET_MY_ORDER_HISTORY, &PayloadHMAC{Symbol: &symbol})
+	if err != nil {
+		return nil, fmt.Errorf("'%s' %+v", _API_MARKET_MY_ORDER_HISTORY, err)
+	}
+
+	var res ResponseArray
+	if err := res.Unmarshal(body); err != nil {
+		return nil, fmt.Errorf("'%s' %+v", _API_MARKET_MY_ORDER_HISTORY, err)
+	}
+
+	result := []*OrderHistory{}
+
+	for _, val := range res.Result {
+		fields, ok := val.(OrderHistory)
+		if !ok {
+			return nil, fmt.Errorf("MyOrderHistory:: %+v", val)
+		}
+
+		result = append(result, &fields)
 	}
 	return result, nil
 }
