@@ -5,9 +5,9 @@ import (
 	"gokub/go-bitkub"
 	"io/ioutil"
 	"log"
+	"math"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/tmilewski/goenv"
 )
@@ -46,7 +46,7 @@ func init() {
 	appVersion = strings.TrimSpace(string(content))
 	appTitle = fmt.Sprintf("%s@%s", appName, appVersion)
 
-	appLog = log.New(os.Stdout, "", log.Lshortfile|log.Ltime)
+	appLog = log.New(os.Stdout, " [Debug] ", log.Ltime)
 }
 
 type Crypto []string
@@ -60,6 +60,10 @@ func (e Crypto) Find(symbol string) bool {
 	return false
 }
 
+func round(x float64) float64 {
+	return math.Round((x)*1000) / 1000
+}
+
 func main() {
 	appLog.Printf("Starting... (%s)", appTitle)
 	bk := &bitkub.Config{ApiKey: os.Getenv(_APIKEY), SecretKey: os.Getenv(_SECRETKEY)}
@@ -69,20 +73,22 @@ func main() {
 		panic(fmt.Sprintf(" - API::%s", err.Error()))
 	}
 
-	serverTime, err := bk.GetServerTime()
-	if err != nil {
-		panic(fmt.Sprintf(" - API::%s", err.Error()))
-	}
-	appLog.Println("- Server Time:", serverTime.Format(time.RFC1123Z))
+	// serverTime, err := bk.GetServerTime()
+	// if err != nil {
+	// 	panic(fmt.Sprintf(" - API::%s", err.Error()))
+	// }
+	// appLog.Println("- Server Time:", serverTime.Format(time.RFC1123Z))
+	// appLog.Println("-  Local Time:", time.Now().Format(time.RFC1123Z))
 
 	wishlist := Crypto{"ADA", "BNB", "CRV", "DOT", "ETH", "EVX", "KUB", "POW", "WAN", "XLM", "XRP"}
+	// wishlist := Crypto{"BTC", "KUB"}
 
-	market, err := bk.MarketBalances()
+	market, err := bk.Balances()
 	if err != nil {
 		panic(err)
 	}
 
-	symbols, err := bk.MarketSymbols()
+	symbols, err := bk.Symbols()
 	if err != nil {
 		panic(err)
 	}
@@ -95,9 +101,10 @@ func main() {
 		if !wishlist.Find(coins[1]) {
 			continue
 		}
+
 		bl := market[coins[1]]
 
-		ticker, err := bk.MarketTicker(v.Symbol)
+		ticker, err := bk.Ticker(v.Symbol)
 		if err != nil {
 			panic(err)
 		}
@@ -106,6 +113,33 @@ func main() {
 		balanceTotal += bl.Available * crypto.LowestAsk
 
 		appLog.Printf(" %s - %.4f Baht", coins[1], bl.Available*crypto.LowestAsk)
+
+		limit := 100
+		page := 1
+		history, err := bk.MyOrderHistory(v.Symbol, &page, &limit, nil, nil)
+		if err != nil {
+			panic(err)
+		}
+
+		totalFee := 0.0
+		totalProfit := 0.0
+		totalWallet := 0.0
+		for _, o := range history {
+			if o.Side == "sell" {
+				totalProfit += round(o.Amount*o.Rate) - o.Fee
+				totalWallet -= o.Amount
+
+				// appLog.Printf("%v +%.2f (fee:%.2f)", o.Date.Format(time.RFC3339), round(o.Amount*o.Rate)-o.Fee, o.Fee)
+			} else if o.Side == "buy" {
+				totalProfit -= round(o.Amount*o.Rate) + o.Fee
+				totalWallet += o.Amount
+
+				// appLog.Printf("%v -%.2f (fee:%.2f)", o.Date.Format(time.RFC3339), round(o.Amount*o.Rate)+o.Fee, o.Fee)
+			}
+			totalFee += o.Fee
+		}
+
+		appLog.Printf("Wallet: %.8f fee: %f Profit: %f", totalWallet, totalFee, totalProfit)
 	}
-	appLog.Printf("Total Balacne: %.4f", balanceTotal)
+	// appLog.Printf("Total Balacne: %.4f", balanceTotal)
 }
